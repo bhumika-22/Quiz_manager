@@ -1,0 +1,178 @@
+# quiz_app.py
+
+import tkinter as tk
+from tkinter import messagebox
+import random
+
+
+class QuizApp:
+
+    def __init__(self, root, subject, question_bank):
+        self.root = root
+        self.subject = subject
+
+        # Randomly select 5 unique questions from the question bank
+        self.questions = random.sample(question_bank, 5)
+
+        self.question_number = 0
+        self.score = 0
+
+        # Stores the option selected by the user
+        self.selected_answer = tk.StringVar()
+
+        self.create_quiz_screen()
+        self.show_question()
+
+
+    def create_quiz_screen(self):
+
+        self.root.title(self.subject + " Quiz")
+        self.root.geometry("750x500")
+        self.root.resizable(False, False)
+
+        # Quiz heading
+        self.heading = tk.Label(
+            self.root,
+            text=self.subject + " QUIZ",
+            font=("Arial", 24, "bold")
+        )
+        self.heading.pack(pady=25)
+
+        # Question number
+        self.number_label = tk.Label(
+            self.root,
+            text="",
+            font=("Arial", 12)
+        )
+        self.number_label.pack()
+
+        # Question
+        self.question_label = tk.Label(
+            self.root,
+            text="",
+            font=("Arial", 15),
+            wraplength=650
+        )
+        self.question_label.pack(pady=25)
+
+        # Radio buttons for four options
+        self.option_buttons = []
+
+        for i in range(4):
+            button = tk.Radiobutton(
+                self.root,
+                text="",
+                variable=self.selected_answer,
+                value="",
+                font=("Arial", 12),
+                width=50,
+                anchor="w"
+            )
+
+            button.pack(pady=5)
+
+            self.option_buttons.append(button)
+
+        # Next button
+        self.next_button = tk.Button(
+            self.root,
+            text="Next",
+            command=self.next_question,
+            font=("Arial", 12, "bold"),
+            width=15
+        )
+
+        self.next_button.pack(pady=25)
+
+
+    def show_question(self):
+
+        current = self.questions[self.question_number]
+
+        # Display question number
+        self.number_label.config(
+            text=f"Question {self.question_number + 1} of 5"
+        )
+
+        # Display question
+        self.question_label.config(
+            text=current["question"]
+        )
+
+        # Clear previous selection
+        self.selected_answer.set("")
+
+        # Display four options
+        for i in range(4):
+
+            option = current["options"][i]
+
+            self.option_buttons[i].config(
+                text=option,
+                value=option
+            )
+
+        # Change Next button to Submit on final question
+        if self.question_number == 4:
+            self.next_button.config(text="Submit")
+        else:
+            self.next_button.config(text="Next")
+
+
+    def next_question(self):
+
+        user_answer = self.selected_answer.get()
+
+        # Check if user selected an option
+        if user_answer == "":
+            messagebox.showwarning(
+                "Answer Required",
+                "Please select an option."
+            )
+            return
+
+        correct_answer = self.questions[
+            self.question_number
+        ]["answer"]
+
+        # Increase score if answer is correct
+        if user_answer == correct_answer:
+            self.score += 1
+
+        # Move to next question
+        if self.question_number < 4:
+
+            self.question_number += 1
+            self.show_question()
+
+        else:
+            self.show_result()
+
+
+    def show_result(self):
+
+        percentage = (self.score / 5) * 100
+
+        # Decide result message
+        if percentage >= 80:
+            result_message = "Excellent Performance!"
+
+        elif percentage >= 60:
+            result_message = "Good Performance!"
+
+        elif percentage >= 40:
+            result_message = "Average Performance!"
+
+        else:
+            result_message = "Keep Practicing!"
+
+        # Display final result
+        messagebox.showinfo(
+            "Quiz Result",
+            f"Subject: {self.subject}\n\n"
+            f"Score: {self.score}/5\n"
+            f"Percentage: {percentage:.0f}%\n\n"
+            f"{result_message}"
+        )
+
+        self.root.destroy()
